@@ -66,6 +66,8 @@ app.use(function(err, req, res, next) {
 //Tenta conectar com o banco de dados
 //
 
+require("./config/associations");
+
 const sequelize = require('./config/database');
 const User = require('./modules/user/userModel');
 const Video = require("./modules/video/videoModel"); // Imporat o modelo Vídeo

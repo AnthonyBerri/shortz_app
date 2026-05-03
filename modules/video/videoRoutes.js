@@ -15,4 +15,9 @@ router.post("/upload", authMiddleware, uploadVideo.fields([
     { name: "thumbnail", maxCount: 1},
 ]), videoController.uploadVideo);
 
+// Rota para streaming de vídeo
+router.get("/video/:id/stream", videoController.streamVideo);
+
+router.get("/video/:id", videoController.renderVideoPage);
+
 module.exports = router;
