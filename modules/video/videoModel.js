@@ -1,6 +1,5 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../../config/database");
-const User = require("../user/userModel"); 
 
 const Video = sequelize.define("Video", 
     {
@@ -10,7 +9,10 @@ const Video = sequelize.define("Video",
         videoPath:      { type: DataTypes.STRING(255), allowNull: false },
         thumbnailPath:  { type: DataTypes.STRING(255), allowNull: false },
         views:          { type: DataTypes.INTEGER, defaultValue: 0 },
-        userId:         { type: DataTypes.INTEGER, allowNull: false, references: { model: User, key: "id" } } 
+        userId:         { type: DataTypes.INTEGER, allowNull: false, references: { model: "users", key: "id" } },
+        likesCount:      { type: DataTypes.INTEGER, defaultValue: 0 },
+        commentsCount:  { type: DataTypes.INTEGER, defaultValue: 0 }
+    
     }, 
     {
         tableName: "videos",
@@ -21,8 +23,5 @@ const Video = sequelize.define("Video",
     }
 );
 
-// Define as associações
-User.hasMany(Video, { foreignKey: "userId" }); // Um usuário pode ter muitos vídeos 
-Video.belongsTo(User, { foreignKey: "userId" }); // Um vídeo pertence a um usuário 
 
 module.exports = Video;
