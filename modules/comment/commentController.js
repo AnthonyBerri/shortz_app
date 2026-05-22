@@ -18,9 +18,13 @@ exports.addComment = async (req, res) => {
             videoId
         });
 
+        // console.log(comment)
+
         await Video.increment("commentsCount", { where: { id: videoId } });
 
         // Retorna o comentário com os dados do usuário para ser adicionado dinamicamente na UI
+
+        // console.log(comment.id);
 
         const newComment = await Comment.findByPk(comment.id, {
             include: [{
@@ -28,6 +32,8 @@ exports.addComment = async (req, res) => {
                 attributes: ["username", "fullName", "profilePicture"]
             }]
         });
+
+        // console.log(newComment);
 
         res.status(201).json({ message: "Comentário adicionado com sucesso!", comment: newComment });
     } catch (error) {

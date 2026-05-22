@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -20,5 +22,26 @@
     "multer": "^2.0.2",
     "mysql2": "^3.18.1",
     "sequelize": "^6.37.7"
-  }
+  },
+  "description": "Trabalho de server side sendo desenvolvido na faculdade",
+  "main": "app.js",
+  "directories": {
+    "test": "tests"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.6",
+    "vitest": "^4.1.6"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AnthonyBerri/shortz_app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/AnthonyBerri/shortz_app/issues"
+  },
+  "homepage": "https://github.com/AnthonyBerri/shortz_app#readme"
 }

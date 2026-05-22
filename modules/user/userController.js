@@ -85,6 +85,8 @@ exports.getProfile = async (userId) => {
         const user = await User.findByPk(userId, {
             attributes: ['id', 'username', 'email', 'fullName', 'bio', 'profilePicture']
         });
+        const UserJSON = user.get({ plain: true });
+        // console.log(UserJSON);
         return user;
     } catch (error) {
         console.error(error);
