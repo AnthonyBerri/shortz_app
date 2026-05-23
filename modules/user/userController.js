@@ -85,8 +85,9 @@ exports.getProfile = async (userId) => {
         const user = await User.findByPk(userId, {
             attributes: ['id', 'username', 'email', 'fullName', 'bio', 'profilePicture']
         });
-        const UserJSON = user.get({ plain: true });
-        // console.log(UserJSON);
+
+        console.log(">>>> DENTRO DO CONTROLLER:", user);
+
         return user;
     } catch (error) {
         console.error(error);
