@@ -14,8 +14,9 @@ describe("Testa o user controller", () => {
     let userController;
 
     beforeEach(() => {
-        vi.resetModules();
+        // vi.resetModules();
         vi.clearAllMocks();
+        vi.restoreAllMocks();
         userController = require("../modules/user/userController");
     })
 
@@ -207,6 +208,8 @@ describe("Testa o user controller", () => {
             redirect: vi.fn()
         };
 
+        vi.spyOn(User, 'findOne').mockRejectedValue({});
+
         await userController.login(req, res);
 
         expect(res.redirect).toHaveBeenCalledWith('/login')
@@ -262,7 +265,7 @@ describe("Testa o user controller", () => {
         await expect(userController.getProfile(userId)).rejects.toThrow('Erro ao buscar perfil do usuário.');
     });
 
-    it("renderPublicProfile deve redirecionar para '/feed'", async () => {
+    it("renderPublicProfile deve redirecionar para '/feed' se o user não for encontrado", async () => {
         const req = {
             params: {
                 username: "Anthony"
@@ -283,10 +286,15 @@ describe("Testa o user controller", () => {
         expect(res.redirect).toHaveBeenCalledWith('/feed')
     });
 
-    it("renderPublicProfile deve redirecionar para '/feed'", async () => {
+    it("renderPublicProfile deve renderizar o perfil do usuario", async () => {
         const req = {
             params: {
                 username: "Anthony"
+            },
+            session: {
+                user: {
+                    id: 1
+                }
             },
             flash: vi.fn()
         };
@@ -298,10 +306,220 @@ describe("Testa o user controller", () => {
             render: vi.fn()
         };
 
-        vi.spyOn(User, 'findOne').mockResolvedValueOnce({});
+        vi.spyOn(User, 'findOne').mockResolvedValueOnce({id: 1, username: "Anthony"});
         
         await userController.renderPublicProfile(req, res);
 
-        expect(res.render).toHaveBeenCalledWith('profile')
+        expect(res.render).toHaveBeenCalledWith("profile", { title: `@Anthony | Shortz-App`, profileUser: {id: 1, username: "Anthony"}, isOwner: true})
+    });
+
+    it("renderPublicProfile deve redirecionar para '/feed' se falhar no try", async () => {
+        const req = {
+            params: {
+                username: "Anthony"
+            },
+            session: {
+                user: {
+                    id: 1
+                }
+            },
+            flash: vi.fn()
+        };
+
+        const res = {
+            status: vi.fn().mockReturnThis(),
+            json: vi.fn(),
+            redirect: vi.fn(),
+            render: vi.fn()
+        };
+        
+        vi.spyOn(User, 'findOne').mockRejectedValueOnce({});
+
+        await userController.renderPublicProfile(req, res);
+
+        expect(res.redirect).toHaveBeenCalledWith('/feed')
+    });
+
+    it("updateProfile deve redirecionar para '/profile/edit' ao passar try", async () => {
+        const req = {
+            body: {
+                fullName: "Anthony",
+                bio: "Olá, eu sou o Anthony."
+            },
+            session: {
+                user: {
+                    id: 1
+                }
+            },
+            flash: vi.fn()
+        };
+
+        const res = {
+            status: vi.fn().mockReturnThis(),
+            json: vi.fn(),
+            redirect: vi.fn(),
+            render: vi.fn()
+        };
+
+        vi.spyOn(User, 'findByPk').mockResolvedValueOnce({});
+
+        vi.spyOn(User, 'update').mockResolvedValueOnce({});
+
+        vi.spyOn(userController, 'getProfile').mockResolvedValueOnce({});
+
+        await userController.updateProfile(req, res);
+
+        expect(res.redirect).toHaveBeenCalledWith('/profile/edit');
+    });
+
+    it("updateProfile deve redirecionar para '/profile/edit' ao falhar o try", async () => {
+        const req = {
+            body: {
+                fullName: "Anthony",
+                bio: "Olá, eu sou o Anthony."
+            },
+            session: {
+                user: {
+                    id: 1
+                }
+            },
+            flash: vi.fn()
+        };
+
+        const res = {
+            status: vi.fn().mockReturnThis(),
+            json: vi.fn(),
+            redirect: vi.fn(),
+            render: vi.fn()
+        };
+
+        vi.spyOn(User, 'findByPk').mockRejectedValueOnce({});
+
+        vi.spyOn(User, 'update').mockRejectedValueOnce({});
+
+        vi.spyOn(userController, 'getProfile').mockRejectedValueOnce({});
+
+        await userController.updateProfile(req, res);
+
+        expect(res.redirect).toHaveBeenCalledWith('/profile/edit');
+    });
+
+    it("updateProfile passa o if( req.file )", async () => {
+        const req = {
+            body: {
+                fullName: "Anthony",
+                bio: "Olá, eu sou o Anthony."
+            },
+            session: {
+                user: {
+                    id: 1
+                }
+            },
+            file: "default-profile.png",
+            flash: vi.fn()
+        };
+
+        const res = {
+            status: vi.fn().mockReturnThis(),
+            json: vi.fn(),
+            redirect: vi.fn(),
+            render: vi.fn()
+        };
+
+        vi.spyOn(User, 'findByPk').mockRejectedValueOnce({});
+
+        vi.spyOn(User, 'update').mockRejectedValueOnce({});
+
+        vi.spyOn(userController, 'getProfile').mockRejectedValueOnce({});
+
+        await userController.updateProfile(req, res);
+
+        expect(res.redirect).toHaveBeenCalledWith('/profile/edit');
+    });
+
+    it("updateProfile passa o if (req.file && oldUser.profilePicture && oldUser.profilePicture !== 'default-profile.png')", async () => {
+        const req = {
+            body: {
+                fullName: "Anthony",
+                bio: "Olá, eu sou o Anthony."
+            },
+            session: {
+                user: {
+                    id: 1
+                }
+            },
+            file: {
+                filename: "default-profile.png"
+            },
+            flash: vi.fn()
+        };
+
+        const res = {
+            status: vi.fn().mockReturnThis(),
+            json: vi.fn(),
+            redirect: vi.fn(),
+            render: vi.fn()
+        };
+
+        vi.spyOn(User, 'findByPk').mockResolvedValueOnce({profilePicture: 'minha-profile-picture.png'});
+
+        vi.spyOn(User, 'update').mockResolvedValueOnce({});
+
+        vi.spyOn(userController, 'getProfile').mockResolvedValueOnce({});
+
+        vi.spyOn(path, 'join').mockResolvedValueOnce({});
+
+        vi.spyOn(fs, 'unlink').mockImplementation((path, callback) => {
+            callback(null);
+        });
+
+        await userController.updateProfile(req, res);
+
+        expect(path.join).toHaveBeenCalledOnce();
+
+        expect(fs.unlink).toHaveBeenCalledOnce();
+    });
+
+    it("updateProfile passa o if (err) do fs.unlink(...)", async () => {
+        const req = {
+            body: {
+                fullName: "Anthony",
+                bio: "Olá, eu sou o Anthony."
+            },
+            session: {
+                user: {
+                    id: 1
+                }
+            },
+            file: {
+                filename: "default-profile.png"
+            },
+            flash: vi.fn()
+        };
+
+        const res = {
+            status: vi.fn().mockReturnThis(),
+            json: vi.fn(),
+            redirect: vi.fn(),
+            render: vi.fn()
+        };
+
+        vi.spyOn(User, 'findByPk').mockResolvedValueOnce({profilePicture: 'minha-profile-picture.png'});
+
+        vi.spyOn(User, 'update').mockResolvedValueOnce({});
+
+        vi.spyOn(userController, 'getProfile').mockResolvedValueOnce({});
+
+        vi.spyOn(path, 'join').mockResolvedValueOnce({});
+
+        vi.spyOn(fs, 'unlink').mockImplementation((path, callback) => {
+            callback(new Error("erro"));
+        });
+
+        await userController.updateProfile(req, res);
+
+        expect(path.join).toHaveBeenCalledOnce();
+
+        expect(fs.unlink).toHaveBeenCalledOnce();
     });
 });
