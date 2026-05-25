@@ -1,7 +1,6 @@
 import { beforeEach, expect, it, test, vi, describe } from 'vitest';
 import { createRequire } from 'module';
 import { browserFormat } from 'vitest/internal/browser';
-import { getAllVideos } from '../modules/video/videoController';
 
 const require = createRequire(import.meta.url);
 
@@ -114,7 +113,7 @@ describe("Testa o video controller", () => {
         vi.spyOn(User, 'increment').mockRejectedValue(new Error("Erro"));
 
         await videoController.uploadVideo(req, res);
-        
+
         expect(req.flash).toHaveBeenCalledWith("error", "Erro ao fazer upload do vídeo. Tente novamente.");
 
         expect(res.redirect).toHaveBeenCalledWith('/upload')
@@ -212,11 +211,171 @@ describe("Testa o video controller", () => {
         });
     });
 
+    it("streamVideo deve incrementar as views do video", async () => {
+        const req = {
+            params: {
+                id: 1
+            },
+            headers: {
+                range: null
+            }
+        };
+
+        const res = {
+            status: vi.fn().mockReturnThis(),
+            json: vi.fn(),
+            redirect: vi.fn(),
+            send: vi.fn(),
+            writeHead: vi.fn()
+        };
+
+        const videoIncrement = vi.fn().mockResolvedValue([1]);
+
+        vi.spyOn(Video, 'findByPk').mockResolvedValue({
+            increment: videoIncrement
+        });
+
+        vi.spyOn(path, 'join').mockReturnValue("public/video-falso.mp4");
+        vi.spyOn(fs, 'statSync').mockReturnValue({size: 512});
+        vi.spyOn(fs, 'createReadStream').mockReturnValue({ pipe: vi.fn() });
+
+        // vi.spyOn(Video, 'increment').mockResolvedValue([1]);
+
+        await videoController.streamVideo(req, res);
+
+        expect(videoIncrement).toHaveBeenCalledWith("views");
+    });
+
     it("getAllVideos deve retornar os videos encontrados no banco", async () => {
         vi.spyOn(Video, 'findAll').mockResolvedValue({});
         
         const videos = await videoController.getAllVideos();
 
         expect(Video.findAll).toHaveBeenCalled();
+    });
+
+    it("renderVideoPage deve falhar no if(!video) e redirecionar para '/feed'", async () => {
+        const req = {
+            params: {
+                id: 1
+            },
+            headers: {
+                range: null
+            },
+            flash: vi.fn(),
+            session: {
+                user: {
+                    id: 1
+                }
+            }
+        };
+
+        const res = {
+            status: vi.fn().mockReturnThis(),
+            json: vi.fn(),
+            redirect: vi.fn(),
+            send: vi.fn(),
+            writeHead: vi.fn()
+        };
+
+        vi.spyOn(Video, 'findByPk').mockResolvedValue(null);
+
+        await videoController.renderVideoPage(req, res);
+
+        expect(res.redirect).toHaveBeenCalledWith('/feed')
+    });
+
+    it("renderVideoPage deve passar no if(req.session.user) e redirecionar para '/feed'", async () => {
+        const req = {
+            params: {
+                id: 1
+            },
+            headers: {
+                range: null
+            },
+            flash: vi.fn(),
+            session: {
+                user: {
+                    id: 1
+                }
+            }
+        };
+
+        const res = {
+            status: vi.fn().mockReturnThis(),
+            json: vi.fn(),
+            redirect: vi.fn(),
+            send: vi.fn(),
+            writeHead: vi.fn()
+        };
+
+        vi.spyOn(Video, 'findByPk').mockResolvedValue(null);
+
+        await videoController.renderVideoPage(req, res);
+
+        expect(res.redirect).toHaveBeenCalledWith('/feed')
+    });
+
+    it("renderVideoPage deve passar a função e redirecionar para '/feed'", async () => {
+        const req = {
+            params: {
+                id: 1
+            },
+            headers: {
+                range: null
+            },
+            flash: vi.fn(),
+            session: {
+                user: {
+                    id: 1
+                }
+            }
+        };
+
+        const res = {
+            status: vi.fn().mockReturnThis(),
+            json: vi.fn(),
+            redirect: vi.fn(),
+            render: vi.fn(),
+            send: vi.fn(),
+            writeHead: vi.fn()
+        };
+
+        vi.spyOn(Video, 'findByPk').mockResolvedValue({title: "Olá"});
+
+        await videoController.renderVideoPage(req, res);
+
+        expect(res.render).toHaveBeenCalledWith("video", { title: "Olá", video: {title: "Olá"}, isLiked: true})
+    });
+
+    it("renderVideoPage deve falhar no try e redirecionar para '/feed'", async () => {
+        const req = {
+            params: {
+                id: 1
+            },
+            headers: {
+                range: null
+            },
+            flash: vi.fn(),
+            session: {
+                user: {
+                    id: 1
+                }
+            }
+        };
+
+        const res = {
+            status: vi.fn().mockReturnThis(),
+            json: vi.fn(),
+            redirect: vi.fn(),
+            send: vi.fn(),
+            writeHead: vi.fn()
+        };
+
+        vi.spyOn(Video, 'findByPk').mockRejectedValue(new Error("AFDAKJFKASJDK"));
+
+        await videoController.renderVideoPage(req, res);
+
+        expect(res.redirect).toHaveBeenCalledWith('/feed');
     });
 });
