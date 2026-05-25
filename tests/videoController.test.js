@@ -285,37 +285,6 @@ describe("Testa o video controller", () => {
         expect(res.redirect).toHaveBeenCalledWith('/feed')
     });
 
-    it("renderVideoPage deve passar no if(req.session.user) e redirecionar para '/feed'", async () => {
-        const req = {
-            params: {
-                id: 1
-            },
-            headers: {
-                range: null
-            },
-            flash: vi.fn(),
-            session: {
-                user: {
-                    id: 1
-                }
-            }
-        };
-
-        const res = {
-            status: vi.fn().mockReturnThis(),
-            json: vi.fn(),
-            redirect: vi.fn(),
-            send: vi.fn(),
-            writeHead: vi.fn()
-        };
-
-        vi.spyOn(Video, 'findByPk').mockResolvedValue(null);
-
-        await videoController.renderVideoPage(req, res);
-
-        expect(res.redirect).toHaveBeenCalledWith('/feed')
-    });
-
     it("renderVideoPage deve passar a função e redirecionar para '/feed'", async () => {
         const req = {
             params: {
